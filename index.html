@@ -69,35 +69,72 @@
         .vba-string { color: #059669; }
         .vba-comment { color: #6b7280; font-style: italic; }
         .vba-type { color: #7c3aed; font-weight: 600; }
+
+        /* モダン化: ヘッダーナビのスクロールバーを非表示にする */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* モダン化: カードに軽いホバー演出を追加（タップ操作では発火しないのでスマホでも違和感なし） */
+        .modern-card {
+            transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+        @media (hover: hover) {
+            .modern-card:hover {
+                box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.12);
+                border-color: #cbd5e1;
+            }
+        }
+
+        /* 行ごとのコード解説：開閉トグル */
+        .line-guide summary { list-style: none; cursor: pointer; }
+        .line-guide summary::-webkit-details-marker { display: none; }
+        .line-guide[open] > summary .lg-chevron { transform: rotate(180deg); }
+        .lg-chevron { transition: transform 0.2s ease; }
+        .line-guide-row { display: grid; grid-template-columns: minmax(0,auto) 1fr; gap: 0.25rem 0.75rem; align-items: start; }
+        @media (max-width: 640px) {
+            .line-guide-row { grid-template-columns: 1fr; }
+        }
+
+        /* スマホで横スクロール可能な表に「横にスクロールできます」ヒントを示す影 */
+        .scroll-fade-x {
+            background:
+                linear-gradient(to right, white 30%, rgba(255,255,255,0)),
+                linear-gradient(to right, rgba(255,255,255,0), white 70%) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.12), rgba(0,0,0,0)),
+                radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.12), rgba(0,0,0,0)) 100% 0;
+            background-repeat: no-repeat;
+            background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+            background-attachment: local, local, scroll, scroll;
+        }
     </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
     <!-- Header -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-excel-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-excel-600/30 text-white">
+    <header class="bg-gradient-to-r from-slate-900 to-slate-800 text-white border-b border-slate-800 sticky top-0 z-30 shadow-lg shadow-slate-900/10">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:h-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-gradient-to-br from-excel-600 to-excel-800 flex items-center justify-center font-bold text-lg sm:text-xl shadow-lg shadow-excel-600/30 text-white">
                     <i class="fa-regular fa-file-excel"></i>
                 </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
-                        Excel VBA CRUD システム設計マスター
-                        <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-excel-600/20 text-excel-100 border border-excel-500/30">完全ガイド</span>
+                <div class="min-w-0">
+                    <h1 class="font-bold text-sm sm:text-lg leading-tight flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span class="truncate">Excel VBA CRUD システム設計マスター</span>
+                        <span class="text-[10px] sm:text-xs font-normal px-2 py-0.5 rounded-full bg-excel-600/20 text-excel-100 border border-excel-500/30 whitespace-nowrap">完全ガイド</span>
                     </h1>
-                    <p class="text-xs text-slate-400">登録・検索・編集・削除の全工程を操作しながら学ぶ</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">登録・検索・編集・削除の全工程を操作しながら学ぶ</p>
                 </div>
             </div>
-            
+
             <!-- Navigation Tabs -->
-            <nav class="flex space-x-1 sm:space-x-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
-                <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="tab-btn active px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 bg-excel-600 text-white shadow">
+            <nav class="flex gap-1 sm:gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-1">
+                <button onclick="switchTab('simulator')" id="tab-btn-simulator" class="tab-btn active shrink-0 px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 bg-excel-600 text-white shadow">
                     <i class="fa-solid fa-gamepad mr-1.5"></i>動作シミュレーター
                 </button>
-                <button onclick="switchTab('guide')" id="tab-btn-guide" class="tab-btn px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50">
+                <button onclick="switchTab('guide')" id="tab-btn-guide" class="tab-btn shrink-0 px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50">
                     <i class="fa-solid fa-code mr-1.5"></i>作成手順＆コード
                 </button>
-                <button onclick="switchTab('mechanism')" id="tab-btn-mechanism" class="tab-btn px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50">
+                <button onclick="switchTab('mechanism')" id="tab-btn-mechanism" class="tab-btn shrink-0 px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50">
                     <i class="fa-solid fa-lightbulb mr-1.5"></i>仕組み・ポイント解説
                 </button>
             </nav>
@@ -121,7 +158,7 @@
         <section id="tab-simulator" class="tab-content space-y-6">
             
             <!-- Controls Bar -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm modern-card flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-excel-600 animate-pulse"></div>
                     <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">仮想Excelワークシート: 「データ」</span>
@@ -147,7 +184,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 <!-- Virtual Excel Sheet (8 Cols) -->
-                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm modern-card overflow-hidden flex flex-col">
                     <div class="bg-slate-100 border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-mono text-slate-600">
                             <i class="fa-solid fa-table text-excel-600"></i>
@@ -181,7 +218,7 @@
                 </div>
 
                 <!-- Real-time VBA Log Side Panel (5 Cols) -->
-                <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 shadow-lg flex flex-col h-[520px]">
+                <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 shadow-lg flex flex-col h-[380px] sm:h-[440px] lg:h-[520px]">
                     <div class="bg-slate-800/80 px-4 py-3 border-b border-slate-700/80 flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-excel-100 text-xs"></i>
@@ -212,7 +249,7 @@
         <!-- ========================================== -->
         <section id="tab-guide" class="tab-content hidden space-y-8">
             
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm modern-card">
                 <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2 mb-2">
                     <i class="fa-solid fa-list-check text-excel-600"></i>
                     VBAシステムの構築手順 4ステップ
@@ -223,7 +260,7 @@
             </div>
 
             <!-- STEP 0: Sheet Setup -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm modern-card p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full">事前準備</span>
                     <h3 class="text-lg font-bold text-slate-800">1. Excelワークシート「データ」の作成</h3>
@@ -250,7 +287,7 @@
             </div>
 
             <!-- STEP 1: Standard Module -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm modern-card p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span class="text-xs font-bold px-3 py-1 bg-excel-100 text-excel-800 rounded-full">STEP 1</span>
                     <h3 class="text-lg font-bold text-slate-800">標準モジュールの作成（フォーム起動マクロ）</h3>
@@ -278,10 +315,26 @@
     UserForm_Search.Show
 <span class="vba-keyword">End Sub</span></code></pre>
                 </div>
+
+                <!-- 行ごとの解説パネル -->
+                <details class="line-guide mt-1 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <summary class="flex items-center justify-between text-sm font-bold text-slate-700">
+                        <span><i class="fa-solid fa-magnifying-glass-plus text-excel-600 mr-2"></i>1行ずつのコード解説を見る</span>
+                        <i class="fa-solid fa-chevron-down lg-chevron text-slate-400"></i>
+                    </summary>
+                    <div class="mt-3 space-y-2.5 text-xs text-slate-600 border-t border-slate-200 pt-3">
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">' ==...==</code><span>先頭の <code class="font-mono">'</code>（シングルクォート）から行末まではすべて<strong>コメント</strong>です。VBAはこの行を処理として実行せず、人間向けのメモとして読み飛ばします。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Sub ShowRegisterForm()</code><span><code class="font-mono">Sub</code> は「戻り値を返さない一連の処理」を定義するキーワードです。<code class="font-mono">ShowRegisterForm</code> という名前の処理（プロシージャ）がここから始まります。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">UserForm_Register.Show</code><span><code class="font-mono">UserForm_Register</code>（新規登録フォーム）オブジェクトの <code class="font-mono">.Show</code> メソッドを実行し、画面上にそのフォームをポップアップ表示します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">End Sub</code><span>プロシージャの終わりを示します。ここで <code class="font-mono">ShowRegisterForm</code> の処理が終了します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Sub ShowSearchForm() 〜 End Sub</code><span>上と同じ考え方で、こちらは <code class="font-mono">UserForm_Search</code>（検索・編集・削除フォーム）を呼び出して表示するだけの処理です。</span></div>
+                        <div class="p-2.5 bg-sky-50 border border-sky-200 rounded-lg text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>ポイント: この標準モジュールは「ボタンが押されたらどのフォームを開くか」だけを担当し、データの登録・検索・削除といった実処理は各フォーム側のコードに任せる、役割分担の設計になっています。</div>
+                    </div>
+                </details>
             </div>
 
             <!-- STEP 2: Register Form -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm modern-card p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span class="text-xs font-bold px-3 py-1 bg-excel-100 text-excel-800 rounded-full">STEP 2</span>
                     <h3 class="text-lg font-bold text-slate-800">新規登録フォーム (`UserForm_Register`) の作成</h3>
@@ -292,7 +345,8 @@
 
                 <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
                     <div class="bg-slate-100 font-bold p-2.5 border-b border-slate-200 text-slate-700">配置コントロール一覧表</div>
-                    <table class="w-full text-left divide-y divide-slate-200 font-mono">
+                    <div class="overflow-x-auto">
+                    <table class="w-full text-left divide-y divide-slate-200 font-mono min-w-[420px]">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="p-2">種類</th>
@@ -309,6 +363,7 @@
                             <tr><td class="p-2">CommandButton</td><td class="p-2 font-bold text-rose-700">btnClose</td><td class="p-2">Caption: 「閉じる」</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 <div class="relative group">
@@ -360,10 +415,38 @@
     Me.txtID.SetFocus
 <span class="vba-keyword">End Sub</span></code></pre>
                 </div>
+
+                <!-- 行ごとの解説パネル -->
+                <details class="line-guide mt-1 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <summary class="flex items-center justify-between text-sm font-bold text-slate-700">
+                        <span><i class="fa-solid fa-magnifying-glass-plus text-excel-600 mr-2"></i>1行ずつのコード解説を見る</span>
+                        <i class="fa-solid fa-chevron-down lg-chevron text-slate-400"></i>
+                    </summary>
+                    <div class="mt-3 space-y-2.5 text-xs text-slate-600 border-t border-slate-200 pt-3">
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Option Explicit</code><span>変数を使う前に必ず <code class="font-mono">Dim</code> で宣言することを強制する宣言です。変数名のタイプミスをコンパイル時に検出できるため、事実上必須の1行です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub btnRegister_Click()</code><span><code class="font-mono">btnRegister</code>という名前のボタンが<strong>クリックされたときに自動実行される</strong>プロシージャの開始。<code class="font-mono">Private</code>はこのフォーム内だけで使える処理という意味です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Dim ws As Worksheet<br>Dim lastRow As Long</code><span>これから使う「変数の入れ物」を用意（宣言）しています。<code class="font-mono">ws</code>はワークシート（表）を、<code class="font-mono">lastRow</code>は整数（行番号）を入れる箱です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Set ws = Worksheets("データ")</code><span>「データ」という名前のシートを、先ほど用意した<code class="font-mono">ws</code>という変数に結びつけます（オブジェクトを代入する時は<code class="font-mono">Set</code>が必要）。以降 <code class="font-mono">ws</code> と書くだけでこのシートを操作できます。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">If Trim(Me.txtID.Value) = "" Then</code><span>ID入力欄（<code class="font-mono">txtID</code>）の値の前後の空白を<code class="font-mono">Trim</code>で取り除き、空文字かどうかを判定しています。<code class="font-mono">Me</code>は「このフォーム自身」を指します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">MsgBox "IDを...", vbExclamation, "入力エラー"</code><span>警告アイコン付きのポップアップメッセージを表示します。第2引数<code class="font-mono">vbExclamation</code>がアイコン種類、第3引数がタイトルバーの文字です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Exit Sub</code><span>この時点で処理を強制的に打ち切り、プロシージャを終了します。IDが空のまま以降の登録処理へ進まないようにする「防波堤」です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">End If</code><span><code class="font-mono">If</code>による条件分岐の範囲がここで終わることを示します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1</code><span>A列の一番下から上方向に向かって最初にデータがあるセルの行番号を取得し、その<strong>1つ下</strong>（つまり新しいデータを書き込むべき空き行）を<code class="font-mono">lastRow</code>に代入しています。詳しい仕組みは「仕組み・ポイント解説」タブで解説しています。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">ws.Cells(lastRow, 1).Value = Me.txtID.Value<br>（2〜4も同様）</code><span><code class="font-mono">ws.Cells(行, 列)</code>で狙ったセルを指定し、その<code class="font-mono">.Value</code>（値）にフォームの入力欄の値を代入しています。列番号は1=A列(ID)、2=B列(氏名)、3=C列(部署)、4=D列(電話番号)に対応します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">MsgBox "登録が完了しました。", vbInformation, "完了"</code><span>登録が正常に終わったことをユーザーに知らせる完了メッセージを表示します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Call ClearForm</code><span>下で定義している別プロシージャ<code class="font-mono">ClearForm</code>を呼び出します。<code class="font-mono">Call</code>は省略も可能ですが、可読性のためによく付けられます。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">End Sub</code><span><code class="font-mono">btnRegister_Click</code>プロシージャの終わりです。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub btnClose_Click()<br>&nbsp;&nbsp;Unload Me<br>End Sub</code><span>「閉じる」ボタンが押されたら<code class="font-mono">Unload Me</code>でこのフォーム自身をメモリから解放し、画面を閉じます。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub ClearForm()</code><span>入力欄をまとめて空にするための、独自に作った補助プロシージャです。ボタンのクリックイベントではなく、コードの中から呼び出すために使います。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Me.txtID.Value = "" （他も同様）</code><span>各テキストボックスの値を空文字にして、画面上の表示をクリアしています。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Me.txtID.SetFocus</code><span>入力カーソルをID欄に戻し、次のデータをすぐに入力できるようにする細かい気配りです。</span></div>
+                        <div class="p-2.5 bg-sky-50 border border-sky-200 rounded-lg text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>ポイント: 「入力チェック → 最終行の特定 → 書き込み → 完了通知 → 入力欄クリア」という流れは、登録系フォームの定番パターンです。</div>
+                    </div>
+                </details>
             </div>
 
             <!-- STEP 3: Search/Edit/Delete Form -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm modern-card p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span class="text-xs font-bold px-3 py-1 bg-excel-100 text-excel-800 rounded-full">STEP 3</span>
                     <h3 class="text-lg font-bold text-slate-800">検索・編集・削除フォーム (`UserForm_Search`) の作成</h3>
@@ -374,7 +457,8 @@
 
                 <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
                     <div class="bg-slate-100 font-bold p-2.5 border-b border-slate-200 text-slate-700">配置コントロール一覧表</div>
-                    <table class="w-full text-left divide-y divide-slate-200 font-mono">
+                    <div class="overflow-x-auto">
+                    <table class="w-full text-left divide-y divide-slate-200 font-mono min-w-[420px]">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="p-2">種類</th>
@@ -391,6 +475,7 @@
                             <tr><td class="p-2">CommandButton</td><td class="p-2 font-bold text-slate-700">btnClose</td><td class="p-2">Caption: 「閉じる」</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 <div class="relative group">
@@ -484,6 +569,36 @@
     Me.txtTel.Value = <span class="vba-string">""</span>
 <span class="vba-keyword">End Sub</span></code></pre>
                 </div>
+
+                <!-- 行ごとの解説パネル -->
+                <details class="line-guide mt-1 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <summary class="flex items-center justify-between text-sm font-bold text-slate-700">
+                        <span><i class="fa-solid fa-magnifying-glass-plus text-sky-600 mr-2"></i>1行ずつのコード解説を見る</span>
+                        <i class="fa-solid fa-chevron-down lg-chevron text-slate-400"></i>
+                    </summary>
+                    <div class="mt-3 space-y-2.5 text-xs text-slate-600 border-t border-slate-200 pt-3">
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private targetRow As Long</code><span>プロシージャの外側（フォームの先頭）で宣言された<strong>モジュールレベル変数</strong>です。1つのSubの中だけで使い捨てにされる変数と違い、フォームが開いている間ずっと値を保持し続けます。詳しくは「仕組み・ポイント解説」タブ参照。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub btnSearch_Click()</code><span>「検索」ボタンが押されたときに動く処理の開始。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Dim ws As Worksheet<br>Dim foundCell As Range<br>Dim searchID As String</code><span>それぞれ「シート」「見つかったセル」「検索ID文字列」を入れる変数を用意します。<code class="font-mono">Range</code>型はセル1つまたは複数を表す型です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">searchID = Trim(Me.txtSearchID.Value)</code><span>検索欄の入力値から前後の空白を除いた文字列を<code class="font-mono">searchID</code>に格納します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">If searchID = "" Then ... Exit Sub</code><span>検索欄が空のまま検索されないようにするための入力チェックです（登録フォームと同じ考え方）。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Set foundCell = ws.Columns("A").Find(What:=searchID, LookAt:=xlWhole)</code><span>A列全体から<code class="font-mono">searchID</code>と完全一致するセルを検索し、見つかったセルを<code class="font-mono">foundCell</code>に格納します。見つからない場合は<code class="font-mono">Nothing</code>（空）になります。<code class="font-mono">LookAt:=xlWhole</code>の重要性は「仕組み・ポイント解説」タブ参照。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">If Not foundCell Is Nothing Then</code><span><code class="font-mono">foundCell</code>が「見つかった（Nothingでない）」かどうかを判定しています。オブジェクトの比較には<code class="font-mono">Is</code>を使うのがVBAのルールです。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">targetRow = foundCell.Row</code><span>見つかったセルの行番号を、モジュールレベル変数<code class="font-mono">targetRow</code>に保存します。この後、編集・削除ボタンがこの行番号を使い回します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Me.txtName.Value = ws.Cells(targetRow, 2).Value （他も同様）</code><span>見つかった行の氏名・部署・電話番号をシートから読み取り、フォームの各テキストボックスに表示します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Else ... MsgBox ... Call ClearFields</code><span>見つからなかった場合の処理です。案内メッセージを出し、下で定義する<code class="font-mono">ClearFields</code>で表示欄と<code class="font-mono">targetRow</code>をリセットします。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub btnUpdate_Click()</code><span>「編集更新」ボタンが押されたときの処理の開始。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">If targetRow = 0 Then ... Exit Sub</code><span>まだ検索が行われておらず<code class="font-mono">targetRow</code>が初期値の0のままなら、更新対象が不明なのでエラーメッセージを出して処理を中断します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">ws.Cells(targetRow, 2).Value = Me.txtName.Value （他も同様）</code><span>先ほど検索で保存しておいた<code class="font-mono">targetRow</code>のセルに、フォームの現在の入力内容を書き戻します。これが「上書き更新」の実体です。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub btnDelete_Click()</code><span>「削除」ボタンが押されたときの処理の開始。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Dim res As VbMsgBoxResult</code><span>ユーザーが「はい/いいえ」のどちらを押したかを受け取るための専用の型（列挙型）で変数を用意します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">res = MsgBox("本当に...", vbYesNo + vbQuestion, "削除確認")</code><span>「はい」「いいえ」の2つのボタンを持つ確認ダイアログを表示し、押された結果を<code class="font-mono">res</code>に格納します。<code class="font-mono">vbYesNo + vbQuestion</code>はボタンの種類とアイコンを同時に指定するテクニックです。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">If res = vbYes Then</code><span>ユーザーが「はい」を選んだ場合だけ、これ以降の削除処理を実行します。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">ws.Rows(targetRow).Delete</code><span><code class="font-mono">targetRow</code>で示された行を<strong>丸ごと削除</strong>します。セルの値を空にするのではなく、行自体を取り除くため、その下の行が自動的に1つずつ繰り上がります。</span></div>
+                        <div class="line-guide-row"><code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700 whitespace-nowrap">Private Sub ClearFields()</code><span>検索結果の表示欄と<code class="font-mono">targetRow</code>をまとめて初期状態に戻す、共通の後片付け処理です。</span></div>
+                        <div class="p-2.5 bg-sky-50 border border-sky-200 rounded-lg text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>ポイント: 「検索して行番号を保持 → その行番号を編集・削除ボタンが使い回す」という流れが、このフォーム全体の設計の核心です。</div>
+                    </div>
+                </details>
             </div>
         </section>
 
@@ -492,7 +607,7 @@
         <!-- ========================================== -->
         <section id="tab-mechanism" class="tab-content hidden space-y-8">
             
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm modern-card">
                 <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2 mb-2">
                     <i class="fa-solid fa-graduation-cap text-excel-600"></i>
                     VBAコードの重要概念＆仕組みの徹底解説
@@ -503,7 +618,7 @@
             </div>
 
             <!-- Point 1: End(xlUp) Diagram -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm modern-card space-y-4">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-emerald-100 text-excel-700 font-bold flex items-center justify-center text-sm">1</span>
                     <h3 class="text-lg font-bold text-slate-800">`End(xlUp).Row + 1` による最終行の特定</h3>
@@ -540,7 +655,7 @@
             </div>
 
             <!-- Point 2: Find & LookAt:=xlWhole -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm modern-card space-y-4">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-bold flex items-center justify-center text-sm">2</span>
                     <h3 class="text-lg font-bold text-slate-800">`Find(LookAt:=xlWhole)` 完全一致指定の必須性</h3>
@@ -574,7 +689,7 @@
             </div>
 
             <!-- Point 3: targetRow Scope -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm modern-card space-y-4">
                 <div class="flex items-center gap-3">
                     <span class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
                     <h3 class="text-lg font-bold text-slate-800">モジュールレベル変数 `targetRow` の役割</h3>
@@ -611,9 +726,9 @@
 
     <!-- Modal 1: Register Form (UserForm_Register) -->
     <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-slate-100 rounded-xl shadow-2xl border-2 border-slate-400 w-full max-w-md overflow-hidden transform transition-all">
+        <div class="bg-slate-100 rounded-xl shadow-2xl border-2 border-slate-400 w-full max-w-md overflow-hidden transform transition-all max-h-[92vh] flex flex-col">
             <!-- VBA Window Header -->
-            <div class="bg-gradient-to-r from-slate-200 to-slate-300 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between select-none">
+            <div class="bg-gradient-to-r from-slate-200 to-slate-300 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between select-none shrink-0">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
                     <i class="fa-regular fa-window-maximize text-excel-700"></i>
                     <span>UserForm_Register (新規データ登録)</span>
@@ -622,7 +737,7 @@
             </div>
 
             <!-- Form Content -->
-            <div class="p-5 space-y-4 bg-slate-50">
+            <div class="p-5 space-y-4 bg-slate-50 overflow-y-auto">
                 <div class="space-y-3 text-xs">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">ID (A列) <span class="text-rose-500">*</span></label>
@@ -658,9 +773,9 @@
 
     <!-- Modal 2: Search Form (UserForm_Search) -->
     <div id="modal-search" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-slate-100 rounded-xl shadow-2xl border-2 border-slate-400 w-full max-w-lg overflow-hidden transform transition-all">
+        <div class="bg-slate-100 rounded-xl shadow-2xl border-2 border-slate-400 w-full max-w-lg overflow-hidden transform transition-all max-h-[92vh] flex flex-col">
             <!-- VBA Window Header -->
-            <div class="bg-gradient-to-r from-slate-200 to-slate-300 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between select-none">
+            <div class="bg-gradient-to-r from-slate-200 to-slate-300 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between select-none shrink-0">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
                     <i class="fa-regular fa-window-maximize text-sky-700"></i>
                     <span>UserForm_Search (検索・編集・削除)</span>
@@ -669,7 +784,7 @@
             </div>
 
             <!-- Form Content -->
-            <div class="p-5 space-y-5 bg-slate-50">
+            <div class="p-5 space-y-5 bg-slate-50 overflow-y-auto">
                 
                 <!-- Search Box Area -->
                 <div class="p-3 bg-sky-50/80 border border-sky-200 rounded-xl space-y-2">
@@ -706,13 +821,13 @@
                 </div>
 
                 <!-- Action Buttons Row -->
-                <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-200">
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200">
                     <button onclick="executeDelete()" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center gap-1">
                         <i class="fa-solid fa-trash-can"></i>
                         <span>削除 (btnDelete)</span>
                     </button>
 
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <button onclick="executeUpdate()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow transition flex items-center gap-1">
                             <i class="fa-solid fa-pen-to-square"></i>
                             <span>編集更新 (btnUpdate)</span>
